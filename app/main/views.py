@@ -15,7 +15,7 @@ from app.models import User, get_user_fitbit_credentials
 from . import main
 
 
-@main.route('/api-subscriptions', methods=['GET'])
+@main.route('/api_subscriptions', methods=['GET'])
 def spi_subscriptions():
     code = request.args.get('verify')
     if code == '047409b78ad21013c75783149c3703f803ad00e2e13ae325ebce50aca810d23b':
