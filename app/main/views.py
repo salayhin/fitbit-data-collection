@@ -15,6 +15,12 @@ from app.models import User, get_user_fitbit_credentials
 from . import main
 
 
+@main.route('/api_subscriptions', methods=['GET'])
+def spi_subscriptions():
+    code = request.args.get('verify')
+    return render_template('api_subscrption.html', code=code)
+
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
     if not flask_login.current_user.is_authenticated:
