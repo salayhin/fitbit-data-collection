@@ -3,9 +3,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    FITBIT_CLIENT_ID = os.environ.get('FITBIT_CLIENT_ID')
-    FITBIT_CLIENT_SECRET = os.environ.get('FITBIT_CLIENT_SECRET')
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
+    # FITBIT_CLIENT_ID = os.environ.get('FITBIT_CLIENT_ID')
+    # FITBIT_CLIENT_SECRET = os.environ.get('FITBIT_CLIENT_SECRET')
+    # SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
+    FITBIT_CLIENT_ID = '22D9KM'
+    FITBIT_CLIENT_SECRET = 'b596d14ac45ab0d9b4c77b60b953a275'
+    SECRET_KEY = 'hbnh3hnbhbhbhbh35678663bhb3gb3hb3nh3hn3h3h3hn3hn3'
     SSL_DISABLE = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True

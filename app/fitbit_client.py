@@ -12,14 +12,14 @@ from config import get_current_config
 # Details https://dev.fitbit.com/docs/oauth2/
 SCOPES = [
     'profile',
-#    'activity',
-#    'heartrate',
-#    'location',
-#    'nutrition',
-#    'settings',
-#    'sleep',
-#    'social',
-#    'weight'
+   'activity',
+   'heartrate',
+   'location',
+   'nutrition',
+   'settings',
+   'sleep',
+   'social',
+   'weight'
 ]
 
 
