@@ -16,7 +16,7 @@ from . import main
 
 
 @main.route('/fitbit/webhook', methods=['GET'])
-def api_subscriptions():
+def verify_fitbit_subscription():
     code = request.args.get('verify')
     if code == '047409b78ad21013c75783149c3703f803ad00e2e13ae325ebce50aca810d23b':
         return render_template('api_subscription.html', code=code), 204
