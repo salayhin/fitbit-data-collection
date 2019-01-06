@@ -16,12 +16,12 @@ from . import main
 
 
 @main.route('/fitbit/webhook', methods=['GET'])
-def spi_subscriptions():
+def api_subscriptions():
     code = request.args.get('verify')
     if code == '047409b78ad21013c75783149c3703f803ad00e2e13ae325ebce50aca810d23b':
-        return render_template('api_subscrption.html', code=code), 204
+        return render_template('api_subscription.html', code=code), 204
     else:
-        return render_template('api_subscrption.html', code=code), 404
+        return render_template('api_subscription.html', code=code), 404
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
