@@ -45,7 +45,9 @@ def index():
                         profile_response['user']['memberSince']
                     )
 
-                    do_subscription(flask_login.current_user.id, 100)
+                    client.subscription(flask_login.current_user.id, 100)
+
+                    #do_subscription(flask_login.current_user.id, 100)
                 except BadResponse:
                     flash("Api Call Failed")
         return render_template('index.html', user_profile=user_profile, permission_url=get_permission_screen_url())
