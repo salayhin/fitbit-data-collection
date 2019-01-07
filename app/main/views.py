@@ -26,6 +26,7 @@ def verify_fitbit_subscription():
     else:
         resp = make_response('', 404)
         resp.headers['Content-Length'] = 0
+        return resp
         #abort(404)
 
 @main.route('/', methods=['GET', 'POST'])
