@@ -45,7 +45,7 @@ def index():
                         profile_response['user']['memberSince']
                     )
 
-                    client.subscription(flask_login.current_user.id, 100)
+                    client.subscription(flask_login.current_user.id, '100')
 
                     #do_subscription(flask_login.current_user.id, 100)
                 except BadResponse:
