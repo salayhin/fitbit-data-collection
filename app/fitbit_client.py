@@ -65,8 +65,6 @@ def get_auth_url(code):
         client_id=get_current_config().FITBIT_CLIENT_ID
     )
 
-authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>', access_token='<access_token>', refresh_token='<refresh_token>')
-authd_client.sleep()
 
 def do_fitbit_auth(code, user):
     r = requests.post(
