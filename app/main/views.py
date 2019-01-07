@@ -19,7 +19,7 @@ from . import main
 @main.route('/fitbit/webhook', methods=['GET'])
 def verify_fitbit_subscription():
     code = request.args.get('verify')
-    if code == '047409b78ad21013c75783149c3703f803ad00e2e13ae325ebce50aca810d23b':
+    if code == 'a21fe8a950806b401db053a94a210dfcf8856527615288c370fd11929cadeb9d':
         abort(404)
     else:
         abort(204)
