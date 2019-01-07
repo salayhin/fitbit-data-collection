@@ -7,7 +7,7 @@ from flask import render_template
 from flask import request
 from flask import url_for
 from flask_login import logout_user, login_required, login_user
-from flask import abort
+from flask import abort, make_response
 
 from app import db
 from app.fitbit_client import fitbit_client, get_permission_screen_url, do_fitbit_auth
@@ -20,9 +20,13 @@ from . import main
 def verify_fitbit_subscription():
     code = request.args.get('verify')
     if code == 'a21fe8a950806b401db053a94a210dfcf8856527615288c370fd11929cadeb9d':
-        abort(404)
+        resp = make_response('', 204)
+        resp.headers['Content-Length'] = 0
+        return resp
     else:
-        abort(204)
+        resp = make_response('', 404)
+        resp.headers['Content-Length'] = 0
+        #abort(404)
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
