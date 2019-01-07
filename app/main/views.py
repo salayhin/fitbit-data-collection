@@ -10,7 +10,7 @@ from flask_login import logout_user, login_required, login_user
 from flask import abort, make_response
 
 from app import db
-from app.fitbit_client import fitbit_client, get_permission_screen_url, do_fitbit_auth
+from app.fitbit_client import fitbit_client, get_permission_screen_url, do_fitbit_auth, do_subscription
 from app.main.forms import RegistrationForm, LoginForm
 from app.models import User, get_user_fitbit_credentials
 from . import main
@@ -44,6 +44,8 @@ def index():
                         profile_response['user']['fullName'],
                         profile_response['user']['memberSince']
                     )
+
+                    do_subscription(flask_login.current_user.id, 100)
                 except BadResponse:
                     flash("Api Call Failed")
         return render_template('index.html', user_profile=user_profile, permission_url=get_permission_screen_url())

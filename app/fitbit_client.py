@@ -81,3 +81,6 @@ def do_fitbit_auth(code, user):
         response['access_token'],
         response['refresh_token']
     )
+
+def do_subscription(subscription_id, subscriber_id):
+    fitbit.Fitbit.subscription(subscription_id, subscriber_id)
