@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 import fitbit
 import requests
-
+import pdb
 from app.models import save_fitbit_token
 from config import get_current_config
 
@@ -34,6 +34,7 @@ def fitbit_client(fitbit_credentials):
     )
     yield client
     # Save in case we did some refreshes
+    
     save_fitbit_token(
         fitbit_credentials.user_id,
         client.client.token['access_token'],
@@ -60,7 +61,7 @@ def get_token():
 
 
 def get_auth_url(code):
-    return 'https://api.fitbit.com/oauth2/token?code={code}&client_id={client_id}&grant_type=authorization_code'.format(
+    return 'https://api.fitbit.com/oauth2/token?code={code}&client_id={client_id}&grant_type=authorization_code&expires_in=31536000'.format(
         code=code,
         client_id=get_current_config().FITBIT_CLIENT_ID
     )
@@ -74,8 +75,10 @@ def do_fitbit_auth(code, user):
             'Authorization': 'Basic {}'.format(get_token()),
         }
     )
+    
     r.raise_for_status()
     response = r.json()
+    
     return save_fitbit_token(
         user.id,
         response['access_token'],

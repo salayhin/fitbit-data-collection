@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>My Amazing Fitbit App</title>
+    </head>
+
+    <body>
+        {% include '_flashes.html' %}
+        {% include 'loginlogout.html' %}
+        <div>
+            Hi {{ current_user.username }} I tried to access your fitbit user profile: {{ user_profile }}!
+        </div>
+        
+        <div>Intraday Heart Day</div>
+        {{activities}}
+        <!--<table>-->
+        <!--    <tr>-->
+        <!--        <td>Value</td>-->
+        <!--        <td>Date</td>-->
+        <!--    </tr>-->
+        <!--  {% for item in activities %}-->
+        <!--    <tr>  -->
+        <!--    <td>{{ item['value'] }}</td>-->
+        <!--    <td>{{ item['dateTime'] }}</td>-->
+        <!--    </tr>-->
+        <!--  {% endfor %}-->
+        <!--</table>-->
+    </body>
+</html>
