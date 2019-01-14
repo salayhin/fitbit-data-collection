@@ -22,8 +22,183 @@ from datetime import date, timedelta
 import pdb
 
 
-@main.route('/get_activity_stats', methods=['GET'])
-def get_activity_stats():
+@main.route('/daily_activity_summary', methods=['GET'])
+def daily_activity_summary():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        data = ''
+        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['memberSince']
+                    )
+
+
+                    ls = client.activities()
+                    r = json.dumps(ls)
+                    d = json.loads(r)
+                    data = d
+                    
+                    df = pd.DataFrame()
+                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'] ,
+                                    'full_name': profile_response['user']['fullName'],
+                                    'json_value': d}, ignore_index=True)
+
+                    df.to_csv( file_path + 'daily_activity_summary.csv', mode='a', header=False, sep=',', index=False, encoding='utf-8')
+
+
+                except BadResponse:
+                    flash("Api Call Failed")
+                    
+        return render_template('daily_activity_summary.html',  data= ls, user_profile=user_profile, df=df)   
+    
+    
+@main.route('/get_steps', methods=['GET'])
+def get_steps():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        data = ''
+        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} UserId: {} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['encodedId'],
+                        profile_response['user']['memberSince']
+                    )
+
+                    #client.subscription(flask_login.current_user.id, '100')
+                    ls  = client.time_series('activities/steps', period='1y')
+                    r = json.dumps(ls)
+                    d = json.loads(r)
+                    data = json_normalize(d['activities-steps'])
+                    
+                    df = pd.DataFrame()
+                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'] ,
+                                    'full_name': profile_response['user']['fullName'],
+                                    'json_value': d}, ignore_index=True)
+
+                    #f = ls['activities-steps']
+                    #df.to_csv('filename.csv', mode='a', header=False)
+                    df.to_csv( file_path + 'timeseries_steps.csv', mode='a', header=False, sep=',', index=False, encoding='utf-8')
+
+                
+                except BadResponse:
+                    flash("Api Call Failed")
+                    
+        return render_template('activities_steps.html', user_profile=user_profile, data=data, df=df)       
+        
+
+
+@main.route('/get_sleep_data', methods=['GET'])
+def get_sleepdata():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        data = ''
+        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['memberSince']
+                    )
+                    
+                    week_sleep_data = []
+                    #week_date_range = (date.today() - timedelta(days=x) for x in xrange(30))
+                    
+                    week_date_range = (date.today() - timedelta(days=x) for x in xrange(7))
+                    for day in week_date_range:
+                        day_sleep_data = client.sleep(date=day)
+                        week_sleep_data.append(day_sleep_data)
+                    
+                    ls = week_sleep_data
+                    
+                    r = json.dumps(ls)
+                    d = json.loads(r)
+                    data = json_normalize(d)
+                    
+                    df = pd.DataFrame()
+                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'] ,
+                                    'full_name': profile_response['user']['fullName'],
+                                    'json_value': data}, ignore_index=True)
+
+                    #f = ls['activities-steps']
+                    #df.to_csv('filename.csv', mode='a', header=False)
+                    df.to_csv( file_path + 'timeseries_sleep.csv', mode='a', header=False, sep=',', index=False, encoding='utf-8')
+
+                    
+                except BadResponse:
+                    flash("Api Call Failed")
+                    
+        return render_template('activities_sleep.html',  user_profile=user_profile, data=data, df=df)  
+            
+    #curl -H "Authorization: Bearer NUESTRO_TOKEN" https://api.fitbit.com/1/user/-/activities/distance/date/today/1d.json
+    # import requests
+    
+    # headers = {
+    #     'Authorization': 'Bearer e8879d2af117c1e2b41dd6a4a759992f',
+    # }
+    
+    # response = requests.get('https://api.fitbit.com/1/user/-/activities/distance/date/today/1d.json', headers=headers)
+    # pdb.set_trace()
+    # return response
+
+@main.route('/get_hearbeat_data', methods=['GET'])
+def get_hearbeat_data():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        data = ''
+        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} UserId: {} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['encodedId'],
+                        profile_response['user']['memberSince']
+                    )
+
+                    #client.subscription(flask_login.current_user.id, '100')
+                    ls  = client.time_series('activities/heart', period='1y')
+                    r = json.dumps(ls)
+                    d = json.loads(r)
+                    data = json_normalize(d['activities-heart'])
+                    
+                    df = pd.DataFrame()
+                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'] ,
+                                    'full_name': profile_response['user']['fullName'],
+                                    'json_value': d}, ignore_index=True)
+
+                    #f = ls['activities-steps']
+                    #df.to_csv('filename.csv', mode='a', header=False)
+                    df.to_csv( file_path + 'timeseries_heartbeat.csv', mode='a', header=False, sep=',', index=False, encoding='utf-8')
+
+                
+                except BadResponse:
+                    flash("Api Call Failed")
+                    
+        return render_template('timeseries_heartbeat.html', user_profile=user_profile, data=data, df=df)  
+
+@main.route('/do_subscription', methods=['GET'])
+def do_subscription():
     if not flask_login.current_user.is_authenticated:
         return redirect(url_for('main.login'))
     else:
@@ -38,20 +213,39 @@ def get_activity_stats():
                         profile_response['user']['memberSince']
                     )
 
-                    #client.subscription(flask_login.current_user.id, '100')
-                    #ls  = client.time_series('activities/calories', period='1y')
-                    #ls = client.activity_stats()
-                    #ls = client.list_subscriptions()
-                    #data = ls['activities-calories']
-                    ls  = client.activity_stats(qualifier='favorite')
-                    # r = json.dumps(ls)
-                    # d = json.loads(r)
-                    # data = json_normalize(d['activities-calories'])
-                
+
+                    ls = client.subscription(str(flask_login.current_user.id), '200', collection='activities')
+
                 except BadResponse:
                     flash("Api Call Failed")
                     
-        return render_template('activity_stats.html',  data= ls)   
+        return render_template('do_subscription.html',  data= ls)   
+        
+
+@main.route('/list_subscriptions', methods=['GET'])
+def list_subscription():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        data = ''
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['memberSince']
+                    )
+
+
+                    ls = client.list_subscriptions()
+
+                except BadResponse:
+                    flash("Api Call Failed")
+                    
+        return render_template('list-subscriptions.html',  data= ls)          
+
 
 @main.route('/get_intraday_heart_rate', methods=['GET'])
 def get_intraday_heart_rate():
@@ -99,11 +293,7 @@ def get_calerories():
                         profile_response['user']['memberSince']
                     )
 
-                    #client.subscription(flask_login.current_user.id, '100')
-                    #ls  = client.time_series('activities/calories', period='1y')
-                    #ls = client.activity_stats()
-                    #ls = client.list_subscriptions()
-                    #data = ls['activities-calories']
+
                     ls  = client.time_series('activities/calories', period='1y')
                     r = json.dumps(ls)
                     d = json.loads(r)
@@ -115,45 +305,7 @@ def get_calerories():
         return render_template('activities.html',  data= data)   
         
 
-@main.route('/get_steps', methods=['GET'])
-def get_steps():
-    if not flask_login.current_user.is_authenticated:
-        return redirect(url_for('main.login'))
-    else:
-        data = ''
-        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
-        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
-        if fitbit_creds:
-            with fitbit_client(fitbit_creds) as client:
-                try:
-                    profile_response = client.user_profile_get()
-                    user_profile = "{} UserId: {} has been on fitbit since {}".format(
-                        profile_response['user']['fullName'],
-                        profile_response['user']['encodedId'],
-                        profile_response['user']['memberSince']
-                    )
 
-                    #client.subscription(flask_login.current_user.id, '100')
-                    ls  = client.time_series('activities/steps', period='1y')
-                    r = json.dumps(ls)
-                    d = json.loads(r)
-                    data = json_normalize(d['activities-steps'])
-                    
-                    df = pd.DataFrame()
-                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'] ,
-                                    'full_name': profile_response['user']['fullName'],
-                                    'json_value': d}, ignore_index=True)
-
-                    #f = ls['activities-steps']
-                    #df.to_csv('filename.csv', mode='a', header=False)
-                    df.to_csv( file_path + 'activities_steps.csv', mode='a', header=False, sep=',', index=False, encoding='utf-8')
-
-                
-                except BadResponse:
-                    flash("Api Call Failed")
-                    
-        return render_template('activities_steps.html', user_profile=user_profile, data=data, df=df)       
-        
         
 @main.route('/get_distance', methods=['GET'])
 def get_distance():
@@ -185,42 +337,7 @@ def get_distance():
         return render_template('activities_distance.html',  data= data)      
         
         
-@main.route('/get_sleep_data', methods=['GET'])
-def get_sleepdata():
-    if not flask_login.current_user.is_authenticated:
-        return redirect(url_for('main.login'))
-    else:
-        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
-        data = ''
-        if fitbit_creds:
-            with fitbit_client(fitbit_creds) as client:
-                try:
-                    
-                    profile_response = client.user_profile_get()
-                    user_profile = "{} has been on fitbit since {}".format(
-                        profile_response['user']['fullName'],
-                        profile_response['user']['memberSince']
-                    )
-                    
-                    week_sleep_data = []
-                    #week_date_range = (date.today() - timedelta(days=x) for x in xrange(30))
-                    #week_data_range = ((date.today() - timedelta(days=240)) - (date.today() - timedelta(days=260))
-                    
-                    week_date_range = (date.today() - timedelta(days=240) - timedelta(days=x) for x in xrange(30))
-                    for day in week_date_range:
-                        day_sleep_data = client.sleep(date=day)
-                        week_sleep_data.append(day_sleep_data)
-                    
-                    ls = week_sleep_data
-                    
-                    r = json.dumps(ls)
-                    d = json.loads(r)
-                    data = json_normalize(d)
-                
-                except BadResponse:
-                    flash("Api Call Failed")
-                    
-        return render_template('activities_sleep.html',  data= data)              
+            
         
         
 @main.route('/get_heartrates', methods=['GET'])
@@ -256,13 +373,13 @@ def get_heartrates():
         
                         
 
-@main.route('/fitbit/webhook', methods=['GET', 'POST'])
+@main.route('/webhook', methods=['POST'])
 def get_updates():
-    updates = request.args.get('updates')
-    # resp = make_response('', 204)
-    # resp.headers['Content-Length'] = 0
-    return render_template('updates.html', updates= updates), 204
+    updates = request.get_json()
+    print updates
+    return ('', 204)
 
+@main.route('/webhook', methods=['GET'])
 def verify_fitbit_subscription():
     code = request.args.get('verify')
     if code == 'a21fe8a950806b401db053a94a210dfcf8856527615288c370fd11929cadeb9d':
@@ -359,6 +476,31 @@ def register():
 
     return render_template('register.html', form=form), status
 
+
+@main.route('/refresh_token')
+def refresh_token():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        user_profile = "Could not access fitbit profile"
+        ls = 'Subscription List is Empty!'
+        data = ''
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['memberSince']
+                    )
+                    
+                except BadResponse:
+                    
+                    flash("Api Call Failed")
+        return render_template('index.html', user_profile=user_profile, permission_url=get_permission_screen_url())
+    
 
 @main.route('/api_subscriptions')
 def api_subscription():
