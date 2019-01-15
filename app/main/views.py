@@ -18,9 +18,48 @@ from pprint import pprint
 import pandas as pd
 import json
 from pandas.io.json import json_normalize
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 import pdb
 
+@main.route('/get_daily_activity_summary_by_date', methods=['GET'])
+def get_daily_activity_summary_by_date():
+    if not flask_login.current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+    else:
+        fitbit_creds = get_user_fitbit_credentials(flask_login.current_user.id)
+	print 'fitbit_creds: '+str(fitbit_creds);
+        data = ''
+        file_path = '/export/sc-ehealth01/fitbit/fitbit-data-collection/data/'
+        datetime_from = request.args.get('date')
+        date_object = datetime.strptime(datetime_from, '%Y-%m-%d')
+
+        if fitbit_creds:
+            with fitbit_client(fitbit_creds) as client:
+                try:
+                    profile_response = client.user_profile_get()
+                    user_profile = "{} has been on fitbit since {}".format(
+                        profile_response['user']['fullName'],
+                        profile_response['user']['memberSince']
+                    )
+
+                    ls = client.activities(date=date_object)
+                    r = json.dumps(ls)
+                    d = json.loads(r)
+                    data = d
+
+                    df = pd.DataFrame()
+                    df = df.append({'fitbit_user_id': profile_response['user']['encodedId'],
+                                    'full_name': profile_response['user']['fullName'],
+                                    'json_value': d}, ignore_index=True)
+
+                    df.to_csv(file_path + 'daily_activity_summary.csv', mode='a', header=False, sep=',', index=False,
+                              encoding='utf-8')
+
+
+                except BadResponse:
+                    flash("Api Call Failed")
+
+        return render_template('daily_activity_summary.html', data=ls, user_profile=user_profile, df=df)
 
 @main.route('/daily_activity_summary', methods=['GET'])
 def daily_activity_summary():

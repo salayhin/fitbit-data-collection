@@ -9,23 +9,11 @@
         {% include '_flashes.html' %}
         {% include 'loginlogout.html' %}
         <a href="{{ permission_url }}">Authorize Or Re-authorize Fitbit</a>
+        {% include '_flashes.html' %} {% include 'loginlogout.html' %} Authorize Or Re-authorize Fitbit
+
         <div>
             Hi {{ current_user.username }} I tried to access your fitbit user profile: {{ user_profile }}!
         </div>
         
-        <div>Calorie Per Day</div>
-
-        <table>
-            <tr>
-                <td>Value</td>
-                <td>Date</td>
-            </tr>
-          {% for item in ls %}
-            <tr>  
-            <td>{{ item['value'] }}</td>
-            <td>{{ item['dateTime'] }}</td>
-            </tr>
-          {% endfor %}
-        </table>
     </body>
 </html>
